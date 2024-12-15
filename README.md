@@ -1,66 +1,93 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+IA CON PRINCIPIOS SOLID
+<br><br><br><br>
+<strong>Estructura de carpetas</strong>
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+<pre>
+    app/
+    ├── Controllers/
+    │   └── ImagenController.php   # Controlador para recibir solicitudes HTTP
+    ├── Services/
+    │   └── MultipleImageProcessorService.php  # Servicio para procesar múltiples imágenes
+    ├── Interfaces/
+    │   └── IAProcessorInterface.php  # Interfaz para definir el contrato de las IAs
+    ├── Exceptions/
+    │   └── ImageValidationException.php  # Excepción personalizada para imágenes corruptas
+    ├── Processors/
+    │   ├── IAChainProcessor.php  # Clase que maneja la cadena de IAs
+    │   ├── OpenAIProcessor.php   # Procesador específico para OpenAI
+    │   └── GeminiProcessor.php   # Procesador específico para Gemini
+</pre>
 
-## About Laravel
+Usamos esta estructura ya que convinamos Pricipios SOLID y Clean Architecture.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+SRP => Cada clase tiene su propia responsabilidad:
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+* Controlador => Recibe una solicitud,envia al servicio y devuelve una respuesta
+* Servicio => Se encarga de organizar el procesamiento de las imagenes.
+* Procesadores => Cada IA tiene su logica propia de como manejar los request a la API.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+OCP => Podemos agregar nuevas IAs en los Procesadores que implementen nuestra Interfaz
+<br>
+<br><br><br><br><br><br><br>
+<strong>Interfaz IA</strong>
 
-## Learning Laravel
+Creamos la interfaz IAProcessorInterface => <br>
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+* Define metodos obligatorios que todas las ia deben usar.
+* Facilita la intercambiabilidad de IAs (Principio LSP) y la inversión de dependencias (DIP).
+* Gracias a la interfaz el sistema no sabrá si estamos usando Open AI o Gemini o cualquier otra IA.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+La interfaz tiene 3 metodos que todos los servicios de ia tiene que tener:
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+* isAvaible() => En el cual hacemos un checkeo rapido si la IA se encuentra en funcionamiento.
+* processImage($image) donde le pasamos una imagen base64 y la procesa.
+* callAPI($message) aca hacemos la llamada a la API de la IA que luego la usamos en el metodo processImage
 
-## Laravel Sponsors
+<strong>OpenAI clase</strong>
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Creamos la clase de OpenAI donde implementamos la interfaz de la IA
 
-### Premium Partners
+Aplicando el SRP (Single Responsibility Principies) => Su unica responsabilidad es iteracturar con la API IA.
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+<strong>Gemini clase</strong>
 
-## Contributing
+Creamos la clase de Gemini donde implementamos la interfaz de la IA.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Aplicando el SRP (Single Responsibility Principies) => Su unica responsabilidad es iteracturar con la API IA.
 
-## Code of Conduct
+<strong>IAChainProcessor clase</strong>
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Creamos la clase IAChainProcessor el cual se encargara de utilizar las ias en forma de cadena, si falla una, utiliza
+la otra. De esta manera podemos implemetar más ias a futuro.
 
-## Security Vulnerabilities
+OCP: Podemos agregar una nueva IA sin cambiar el procesador.
+LSP (Sustitución de Liskov): OpenAI y Gemini son intercambiables porque implementan la misma interfaz.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+<strong>Imagen Controller</strong>
 
-## License
+En este controlador recibe un request por http. Se encarga de mandarselo al MultipleImageProcessorService donde el mismo
+le devuelve los resultados que debe mandar por json.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Aplicando: SRP porque tiene una unica resposabilidad:  acatar la solicitud, enviarla al servicio y luego responder.
+DIP (Dependencies Inversion Pricipies) No depende de una clase concreta, sino más bien de una Interfaz.
+
+<strong>MultipleImageProcessorService</strong>
+
+Recibe una lista de imagenes desde algun controlador. Itera las imagenes y por cada una utiliza la cade de
+procesamientos de ias.
+
+Principios aplicados en el servicio
+
+SRP: Se encarga de la lógica de procesamiento de imágenes, nada más.
+DIP: Depende de la IAProcessorInterface, no de clases concretas.
+OCP: Podemos agregar nuevas validaciones de imagen (por ejemplo, verificar resolución) sin modificar el flujo general.
+
+
+<strong>
+EXCEPTIONS
+</strong>
+
+SRP: Las excepciones están centralizadas.
+Transparencia: El cliente (API) recibe una respuesta clara de por qué falló el proceso.
+
+

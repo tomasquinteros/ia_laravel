@@ -2,6 +2,10 @@
 
 namespace App\Providers;
 
+use App\Interfaces\IAProcessorInterface;
+use App\Processors\GeminiAI;
+use App\Processors\IAChainProcessor;
+use App\Processors\OpenAI;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +23,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Para que laravel sepa que a la hora de instanciar nustro IAProcessorInterface debe usar la cadena de IA
+        $this->app->bind(IAProcessorInterface::class, function () {
+            return new IAChainProcessor([
+                new OpenAI(),
+                new GeminiAI(),
+            ]);
+        });
     }
 }
