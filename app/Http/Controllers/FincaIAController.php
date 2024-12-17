@@ -2,33 +2,29 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\FincaIAProcessImageRequest;
 use App\Services\MultipleImageProcessorService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class FincaIAController extends Controller
 {
     private MultipleImageProcessorService $multipleImageProcessorService;
 
+    // Instancion el servicio de procesamiento de multiples imagenes.
     public function __construct(MultipleImageProcessorService $multipleImageProcessorService)
     {
         $this->multipleImageProcessorService = $multipleImageProcessorService;
     }
 
-    public function processMultiplesImages(Request $request): JsonResponse
+    public function processMultiplesImages(FincaIAProcessImageRequest $request): JsonResponse
     {
-        $request->validate(
-            [
-                'images' => 'required|array|min:1|max:20',
-                'images.*' => 'required|image|mimes:jpeg,png,jpg|max:1024'
-            ],
-            [
-                'images.required' => 'Debe ingresar al menos una imagen.',
-            ]
-        );
+        // Al usar Request personalizado, ya a la hora de recibir el dato lo valida. Si da error devuelve
+        // directamente el error. Si está validado los requerimentos, pasa a hacer todo el proceso dentro del metodo.
+
 
         $images = $request->file('images');
-        $results = $this->multipleImageProcessorService->processImages($images);
+        $results = $this->multipleImageProcessorService->processImages($images,
+            $instruction = 'Generar imagen de finca');
 
         return response()->json([
             'messages' => 'Procesamiento completado.',

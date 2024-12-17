@@ -14,7 +14,7 @@ class MultipleImageProcessorService
     private IAProcessorInterface $ia_processor;
 
     /**
-     * Inyectamos el IAChainProcessor o cualquier procesador que implemente la interfaz. La idea es poder usar el
+     * Inyectamos el IAChainImageProcessor o cualquier procesador que implemente la interfaz. La idea es poder usar el
      * servicio dentro de este servicio.
      * @param  IAProcessorInterface  $ia_processor
      */
@@ -28,16 +28,19 @@ class MultipleImageProcessorService
      * @param  array  $images
      * @return array
      */
-    public function processImages(array $images): array
+    public function processImages(array $images, $instruction): array
     {
         $results = [];
 
         foreach ($images as $image) {
             try {
+
                 // Validamos y convertimos la imagen en base64.
                 $image_base64 = $this->validateAndConvertImageBase64($image);
+
                 // Procesamos la imagen mediante la IA.
-                $process = $this->ia_processor->processImage($image_base64);
+                $process = $this->ia_processor->processImage($image_base64, $instruction);
+
                 // Guardamos la imagen en el servidor.
                 $this->saveImageLocal($image);
 
@@ -51,7 +54,7 @@ class MultipleImageProcessorService
                 $results[] = [
                     'image_name' => $image->getClientOriginalName(),
                     'process' => 'Imagen corrupta o no valida.',
-                    'status' => 500,
+                    'status' => 422,
                 ];
             } catch (Exception $error) {
                 $results[] = [
